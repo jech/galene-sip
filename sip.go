@@ -23,15 +23,15 @@ var ErrSIPTimeout = errors.New("SIP timeout")
 var ErrSIPDialogTerminated = errors.New("SIP dialog terminated")
 
 type dialogKey struct {
-	callID    string
-	remoteTag string
-	localTag  string
+	callID   string
+	localTag string
 }
 
 type dialog struct {
-	reqCh   chan *sipMsg
-	replyCh chan *sipMsg
-	cseq    int
+	reqCh     chan *sipMsg
+	replyCh   chan *sipMsg
+	remoteTag string
+	cseq      int
 }
 
 type sipServer struct {
@@ -264,22 +264,24 @@ func getTags(msg *sip.Msg) (string, string) {
 	return fromTag, toTag
 }
 
+var ErrDuplicateDialog = errors.New("duplicate dialog")
+
 func (s *sipServer) startDialog(callID, remoteTag, localTag string) (<-chan *sipMsg, <-chan *sipMsg, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	key := dialogKey{
-		callID:    callID,
-		remoteTag: remoteTag,
-		localTag:  localTag,
+		callID:   callID,
+		localTag: localTag,
 	}
 	_, ok := s.dialogs[key]
 	if ok {
-		return nil, nil, errors.New("duplicate dialog")
+		return nil, nil, ErrDuplicateDialog
 	}
 	d := dialog{
-		reqCh:   make(chan *sipMsg, 8),
-		replyCh: make(chan *sipMsg, 8),
-		cseq:    -1,
+		reqCh:     make(chan *sipMsg, 8),
+		replyCh:   make(chan *sipMsg, 8),
+		remoteTag: remoteTag,
+		cseq:      -1,
 	}
 	s.dialogs[key] = &d
 	return d.reqCh, d.replyCh, nil
@@ -302,30 +304,26 @@ type sipMsg struct {
 	addr *net.UDPAddr
 }
 
-func (s *sipServer) findDialog(callID, remoteTag, localTag string) *dialog {
+func (s *sipServer) findDialog(callID, remoteTag, localTag string) (*dialog, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	key := dialogKey{
-		callID:    callID,
-		remoteTag: remoteTag,
-		localTag:  localTag,
+		callID:   callID,
+		localTag: localTag,
 	}
 	d, ok := s.dialogs[key]
-	if ok {
-		return d
+	if !ok {
+		return nil, os.ErrNotExist
 	}
 
-	key.remoteTag = ""
-	d, ok = s.dialogs[key]
-	if ok {
-		delete(s.dialogs, key)
-		key.remoteTag = remoteTag
-		s.dialogs[key] = d
-		return d
+	if d.remoteTag == "" {
+		d.remoteTag = remoteTag
+	} else if d.remoteTag != remoteTag {
+		return nil, ErrDuplicateDialog
 	}
 
-	return nil
+	return d, nil
 }
 
 func tweakVia(msg *sip.Msg, from *net.UDPAddr) (*net.UDPAddr, error) {
@@ -439,8 +437,25 @@ func (s *sipServer) readLoop() error {
 			}
 			addr = a
 		}
-		d := s.findDialog(msg.CallID, remoteTag, localTag)
-		if d != nil {
+		d, err := s.findDialog(msg.CallID, remoteTag, localTag)
+		if err != nil && err != os.ErrNotExist {
+			if !msg.IsResponse() {
+				status := 500
+				phrase := err.Error()
+				if err == ErrDuplicateDialog {
+					status = 482
+					phrase = ""
+				}
+				reply := &sip.Msg{
+					Status: status,
+					Phrase: phrase,
+				}
+				s.sendReply(msg, reply, from)
+			}
+			continue
+		}
+
+		if err == nil {
 			ch = d.reqCh
 			if msg.IsResponse() {
 				ch = d.replyCh
