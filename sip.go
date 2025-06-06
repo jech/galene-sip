@@ -663,6 +663,7 @@ func (s *sipServer) register(ctx context.Context, callId string, cseq *int, seco
 func registerLoop(ctx context.Context, s *sipServer, callID string, registerDone chan<- struct{}) {
 	var timeout time.Duration
 	cseq := 1
+	registered := false
 outer:
 	for {
 		secs, err := s.register(ctx, callID, &cseq, 3600)
@@ -673,6 +674,7 @@ outer:
 			timeout = max(
 				time.Duration(secs)*time.Second*2/3,
 				time.Minute)
+			registered = true
 		}
 		timer := time.NewTimer(timeout)
 		select {
@@ -684,11 +686,13 @@ outer:
 		}
 	}
 
-	// unregister uncoditionally, in case we're behind NAT and the
-	// registrar returned some other contact.
-	secs, err := s.register(context.Background(), callID, &cseq, 0)
-	if err != nil || secs != 0 {
-		log.Println("Unregister:", secs, err)
+	if registered {
+		// unregister even if register returned 0, since we might be
+		// behind NAT and didn't recognise our contact in the reply.
+		secs, err := s.register(context.Background(), callID, &cseq, 0)
+		if err != nil || secs != 0 {
+			log.Printf("Unregister: %v %v", secs, err)
+		}
 	}
 	close(registerDone)
 }
