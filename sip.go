@@ -257,9 +257,11 @@ func getTags(msg *sip.Msg) (string, string) {
 		fromTag = fTag.Value
 	}
 	toTag := ""
-	tTag := msg.To.Param.Get("tag")
-	if tTag != nil {
-		toTag = tTag.Value
+	if msg.To != nil {
+		tTag := msg.To.Param.Get("tag")
+		if tTag != nil {
+			toTag = tTag.Value
+		}
 	}
 	return fromTag, toTag
 }
