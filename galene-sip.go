@@ -132,6 +132,9 @@ func outOfDialogLoop(ctx context.Context, s *sipServer) {
 				}()
 			} else if strings.EqualFold(msg.Method, "OPTIONS") {
 				to := msg.To.Copy()
+				if to == nil {
+					to = &sip.Addr{}
+				}
 				to.Param = &sip.Param{
 					Name:  "tag",
 					Value: util.GenerateTag(),
