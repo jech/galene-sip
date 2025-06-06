@@ -37,6 +37,7 @@ var debug bool
 
 func main() {
 	var noRegister bool
+	var sipUDPAddress string
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr,
 			"Usage: %s group\n", os.Args[0],
@@ -48,6 +49,8 @@ func main() {
 		"don't attempt registration")
 	flag.StringVar(&sipRegistrar, "sip-registrar", "", "SIP registrar")
 	flag.StringVar(&sipPassword, "sip-password", "", "SIP password")
+	flag.StringVar(&sipUDPAddress, "sip-udp-address", ":",
+		"local SIP UDP adress")
 	flag.StringVar(&galeneUsername, "username", "", "Galene username")
 	flag.StringVar(&galenePassword, "password", "", "Galene password")
 	flag.BoolVar(&insecure, "insecure", false,
@@ -74,9 +77,14 @@ func main() {
 		sipRegistrar = r.String()
 	}
 
-	sock, err := net.ListenUDP("udp", nil)
+	listenAddr, err := net.ResolveUDPAddr("udp", sipUDPAddress)
 	if err != nil {
-		log.Fatal("Create UDP socket: ", err)
+		log.Fatalf("Parse sipUDPAddress: %v", err)
+	}
+
+	sock, err := net.ListenUDP("udp", listenAddr)
+	if err != nil {
+		log.Fatalf("Create UDP socket: %v", err)
 	}
 	defer sock.Close()
 
