@@ -208,9 +208,6 @@ outer:
 				}
 				msg2 := m2.msg
 				addr2 := m2.addr
-				if !transactionMatch(msg2, msg) {
-					continue
-				}
 				if strings.EqualFold(
 					msg2.Method, "ACK",
 				) {
