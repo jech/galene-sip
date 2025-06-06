@@ -124,7 +124,7 @@ func transactionMatch(reply, msg *sip.Msg) bool {
 	}
 
 	rbranch := reply.Via.Param.Get("branch")
-	mbranch := reply.Via.Param.Get("branch")
+	mbranch := msg.Via.Param.Get("branch")
 	if rbranch == nil || mbranch == nil {
 		return false
 	}
