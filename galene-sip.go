@@ -36,6 +36,7 @@ var insecure bool
 var debug bool
 
 func main() {
+	var noRegister bool
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr,
 			"Usage: %s group\n", os.Args[0],
@@ -43,6 +44,8 @@ func main() {
 		flag.PrintDefaults()
 	}
 	flag.StringVar(&sipAddress, "sip", "sip:6002@localhost", "SIP address")
+	flag.BoolVar(&noRegister, "no-sip-register", false,
+		"don't attempt registration")
 	flag.StringVar(&sipRegistrar, "sip-registrar", "", "SIP registrar")
 	flag.StringVar(&sipPassword, "sip-password", "", "SIP password")
 	flag.StringVar(&galeneUsername, "username", "", "Galene username")
@@ -90,7 +93,11 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	go registerLoop(ctx, s, registerCallID, registerDone)
+	if !noRegister {
+		go registerLoop(ctx, s, registerCallID, registerDone)
+	} else {
+		close(registerDone)
+	}
 
 	go outOfDialogLoop(ctx, s)
 	<-terminate
