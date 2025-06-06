@@ -71,7 +71,7 @@ func (decoder *Decoder) Decode(data []byte, pcm []int16, fec bool) (int, error) 
 	if rc < 0 {
 		return 0, Error(rc)
 	}
-	return int(rc)*decoder.channels, nil
+	return int(rc) * decoder.channels, nil
 }
 
 func (decoder *Decoder) DecodeFloat(data []byte, pcm []float32, fec bool) (int, error) {
@@ -91,7 +91,7 @@ func (decoder *Decoder) DecodeFloat(data []byte, pcm []float32, fec bool) (int, 
 	if rc < 0 {
 		return 0, Error(rc)
 	}
-	return int(rc)*decoder.channels, nil
+	return int(rc) * decoder.channels, nil
 }
 
 func (decoder *Decoder) Reset() error {

@@ -123,8 +123,8 @@ func outOfDialogLoop(ctx context.Context, s *sipServer) {
 					Next:  to.Param,
 				}
 				optionsOk := &sip.Msg{
-					Status:      200,
-					To:          to,
+					Status: 200,
+					To:     to,
 				}
 				s.sendReply(msg, optionsOk, addr)
 			} else {
@@ -176,10 +176,10 @@ func gotInvite(ctx context.Context, s *sipServer, invite *sip.Msg, inviteAddr *n
 			phrase = err.Error()
 		}
 		reply := &sip.Msg{
-			Status:      status,
-			Phrase:      phrase,
-			To:          to,
-			Contact:     contact,
+			Status:  status,
+			Phrase:  phrase,
+			To:      to,
+			Contact: contact,
 		}
 		s.sendReplyReliably(ctx, invite, reply, addr, false, replyCh)
 		return err
@@ -266,9 +266,9 @@ func gotInvite(ctx context.Context, s *sipServer, invite *sip.Msg, inviteAddr *n
 	)
 
 	trying := sip.Msg{
-		Status:      100,
-		To:          to,
-		Contact:     contact,
+		Status:  100,
+		To:      to,
+		Contact: contact,
 	}
 
 	s.sendReply(invite, &trying, inviteAddr)
@@ -290,10 +290,10 @@ func gotInvite(ctx context.Context, s *sipServer, invite *sip.Msg, inviteAddr *n
 	defer client.Close()
 
 	okReply := &sip.Msg{
-		Status:      200,
-		To:          to,
-		Contact:     contact,
-		Payload:     answer,
+		Status:  200,
+		To:      to,
+		Contact: contact,
+		Payload: answer,
 	}
 
 	_, _, err = s.sendReplyReliably(ctx,
@@ -374,17 +374,17 @@ outer:
 
 			if strings.EqualFold(msg.Method, "BYE") {
 				byeOk := &sip.Msg{
-					Status:      200,
-					Contact:     contact,
+					Status:  200,
+					Contact: contact,
 				}
 				s.sendReply(msg, byeOk, addr)
 				return nil
 			} else if strings.EqualFold(msg.Method, "INVITE") {
 				fail := func(status int, phrase string) {
 					reply := &sip.Msg{
-						Status:      status,
-						Phrase:      phrase,
-						Contact:     contact,
+						Status:  status,
+						Phrase:  phrase,
+						Contact: contact,
 					}
 					s.sendReply(msg, reply, addr)
 				}
@@ -403,9 +403,9 @@ outer:
 					Port: int(offer.Audio.Port),
 				})
 				inviteOk := &sip.Msg{
-					Status:      200,
-					Contact:     contact,
-					Payload:     answer,
+					Status:  200,
+					Contact: contact,
+					Payload: answer,
 				}
 				s.sendReply(msg, inviteOk, addr)
 			} else if strings.EqualFold(msg.Method, "ACK") ||
@@ -413,8 +413,8 @@ outer:
 				// nothing
 			} else {
 				resp := &sip.Msg{
-					Status:      500,
-					Contact:     contact,
+					Status:  500,
+					Contact: contact,
 				}
 				s.sendReply(msg, resp, addr)
 			}
@@ -937,7 +937,7 @@ func galeneJoin(ctx context.Context, url, username, password string) (*gclient.C
 				case "join":
 					client.Request(
 						map[string][]string{
-							"": []string{"audio"},
+							"": {"audio"},
 						},
 					)
 					track, sender, err :=

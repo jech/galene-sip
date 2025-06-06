@@ -219,12 +219,12 @@ outer:
 					msg2.Method, "CANCEL",
 				) {
 					cancelOk := &sip.Msg{
-						Status:      200,
+						Status: 200,
 					}
 					s.sendReply(msg2, cancelOk, to)
 					terminatedReply := &sip.Msg{
-						Status:      487,
-						To:          msg.To,
+						Status: 487,
+						To:     msg.To,
 					}
 					_, _, err := s.sendReplyReliably(
 						ctx, invite, terminatedReply,
@@ -427,8 +427,8 @@ func (s *sipServer) readLoop() error {
 				phrase = err.Error()
 			}
 			reply := &sip.Msg{
-				Status:     status,
-				Phrase:     phrase,
+				Status: status,
+				Phrase: phrase,
 			}
 			s.sendReply(msg, reply, addr)
 		}

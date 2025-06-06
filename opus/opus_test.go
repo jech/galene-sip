@@ -2,27 +2,27 @@ package opus
 
 import (
 	"fmt"
-	"testing"
 	"math"
+	"testing"
 )
 
 func TestEncodeDecode(t *testing.T) {
 	for _, ch := range []int{1, 2} {
-		t.Run(fmt.Sprintf("%vchannels", ch), func (t *testing.T) {
+		t.Run(fmt.Sprintf("%vchannels", ch), func(t *testing.T) {
 			encoder, err := NewEncoder(8000, ch)
 			if err != nil {
 				t.Fatalf("NewEncoder: %v", err)
 			}
-			pcm := make([]int16, 160 * ch)
+			pcm := make([]int16, 160*ch)
 			for i := 0; i < 160; i++ {
 				v := int16(
 					math.Cos(float64(i)/420*2*math.Pi) *
-					16384)
+						16384)
 				if ch == 1 {
 					pcm[i] = v
 				} else {
 					pcm[2*i] = v
-					pcm[2*i + 1] = v
+					pcm[2*i+1] = v
 				}
 			}
 			data := make([]byte, 2048)
@@ -48,21 +48,21 @@ func TestEncodeDecode(t *testing.T) {
 
 func TestEncodeDecodeFloat(t *testing.T) {
 	for _, ch := range []int{1, 2} {
-		t.Run(fmt.Sprintf("%vchannels", ch), func (t *testing.T) {
+		t.Run(fmt.Sprintf("%vchannels", ch), func(t *testing.T) {
 			encoder, err := NewEncoder(8000, ch)
 			if err != nil {
 				t.Fatalf("NewEncoder: %v", err)
 			}
-			pcm := make([]float32, 160 * ch)
+			pcm := make([]float32, 160*ch)
 			for i := 0; i < 160; i++ {
 				v := float32(
-					math.Cos(float64(i)/420*2*math.Pi),
+					math.Cos(float64(i) / 420 * 2 * math.Pi),
 				)
 				if ch == 1 {
 					pcm[i] = v
 				} else {
 					pcm[2*i] = v
-					pcm[2*i + 1] = v
+					pcm[2*i+1] = v
 				}
 			}
 			data := make([]byte, 2048)
