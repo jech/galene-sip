@@ -222,12 +222,15 @@ func gotInvite(ctx context.Context, s *sipServer, invite *sip.Msg, inviteAddr *n
 		return fail(404, nil, inviteAddr)
 	}
 
-	offer, ok := invite.Payload.(*sdp.SDP)
-	if !ok {
+	if invite.Payload == nil {
 		return fail(501,
 			errors.New("server offer not implemented yet"),
 			inviteAddr,
 		)
+	}
+	offer, ok := invite.Payload.(*sdp.SDP)
+	if !ok {
+		return fail(451, nil, inviteAddr)
 	}
 
 	if offer.Audio == nil || offer.Audio.Proto != "RTP/AVP" {
