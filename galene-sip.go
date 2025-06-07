@@ -233,7 +233,7 @@ func gotInvite(ctx context.Context, s *sipServer, invite *sip.Msg, inviteAddr *n
 		return fail(451, nil, inviteAddr)
 	}
 
-	if offer.Audio == nil || offer.Audio.Proto != "RTP/AVP" {
+	if offer.Audio == nil {
 		err := errors.New("no audio track")
 		return fail(488, err, inviteAddr)
 	}
