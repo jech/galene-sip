@@ -38,6 +38,7 @@ var debug bool
 func main() {
 	var noRegister bool
 	var sipUDPAddress string
+	var registerNetwork string
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr,
 			"Usage: %s group\n", os.Args[0],
@@ -48,6 +49,8 @@ func main() {
 	flag.BoolVar(&noRegister, "no-sip-register", false,
 		"don't attempt registration")
 	flag.StringVar(&sipRegistrar, "sip-registrar", "", "SIP registrar")
+	flag.StringVar(&registerNetwork, "sip-register-network", "udp4",
+		"SIP registrar network, one of udp4 or udp6")
 	flag.StringVar(&sipPassword, "sip-password", "", "SIP password")
 	flag.StringVar(&sipUDPAddress, "sip-udp-address", ":",
 		"local SIP UDP adress")
@@ -97,17 +100,16 @@ func main() {
 	signal.Notify(terminate, syscall.SIGINT, syscall.SIGTERM)
 
 	registerCallID := util.GenerateCallID()
-	register4Done := make(chan struct{})
-	register6Done := make(chan struct{})
+	registerDone := make(chan struct{})
 
 	ctx, cancel := context.WithCancel(context.Background())
 
 	if !noRegister {
-		go registerLoop(ctx, "udp4", s, registerCallID, register4Done)
-		go registerLoop(ctx, "udp6", s, registerCallID, register6Done)
+		go registerLoop(ctx,
+			registerNetwork, s, registerCallID, registerDone,
+		)
 	} else {
-		close(register4Done)
-		close(register6Done)
+		close(registerDone)
 	}
 
 	go outOfDialogLoop(ctx, s)
@@ -116,8 +118,7 @@ func main() {
 
 	// leave time for BYE requests to go out
 	timer := time.NewTimer(450 * time.Millisecond)
-	<-register4Done
-	<-register6Done
+	<-registerDone
 	<-timer.C
 }
 

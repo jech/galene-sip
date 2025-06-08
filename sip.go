@@ -695,18 +695,7 @@ outer:
 	for {
 		secs, err := s.register(ctx, network, callID, &cseq, 3600)
 		if err != nil {
-			fine := false
-			if network == "udp6" {
-				// Perhaps we have no IPv6 addres. That's fine.
-				var aerr *net.AddrError
-				fine = fine || errors.As(err, &aerr)
-				// Perhaps the server doesn't.  That's fine too.
-				var derr *net.DNSError
-				fine = fine || errors.As(err, &derr)
-			}
-			if !fine || debug {
-				log.Printf("Register %v: %v", network, err)
-			}
+			log.Printf("Register %v: %v", network, err)
 			timeout = time.Minute
 		} else {
 			timeout = max(
