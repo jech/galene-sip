@@ -123,6 +123,7 @@ func main() {
 }
 
 func outOfDialogLoop(ctx context.Context, s *sipServer) {
+outer:
 	for {
 		select {
 		case m := <-s.outOfDialog.reqCh:
@@ -156,7 +157,7 @@ func outOfDialogLoop(ctx context.Context, s *sipServer) {
 		case m := <-s.outOfDialog.replyCh:
 			log.Println("Unexpected reply", m.msg.CSeqMethod)
 		case <-ctx.Done():
-			break
+			break outer
 		}
 	}
 }
