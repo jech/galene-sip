@@ -4,22 +4,23 @@ Galene-SIP is a work in progress gateway between the Galene
 videoconferencing server and the SIP protocol.  It currently has the
 following features:
 
-  * register with a SIP registrar;
-  * receive SIP calls and bridge them to Galene;
+  * register with a SIP registrar, over both IPv4 and IPv6;
+  * receive SIP calls (handle invites) and bridge them to Galene;
+  * handle SIP reinvites (put on hold);
   * recode audio from SIP to Galene;
   * decode, mix and reencode audio from Galene to SIP;
   * silence detection.
   
-This is a work in progress, and the following features are required before
-this can be used in production:
+This is a work in progress, and the following SIP features are currently
+not implemented:
 
   * NAT support (keepalives, STUN, etc.);
-  * SIP over TCP and SIP over TLS;
-  * client offers (we currently assume that the server will send the offer);
-  * support for Opus on the SIP side (only PCMU and PCMA (G.711) are supported,
-    Opus is of course supported on the Galene side);
-  * more complete RTCP on the SIP side;
-  * unit tests.
+  * SIP over TCP and over TLS (only UDP is supported);
+  * referrals (call transfer, RFC 3515);
+  * session timers (RFC 4028);
+  * client offers (a mandatory part of the specification, but apparently
+    not widely used);
+  * timestamps and statistics in RTCP.
 
 
 ## Building
