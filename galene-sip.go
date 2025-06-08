@@ -228,7 +228,7 @@ func gotInvite(ctx context.Context, s *sipServer, invite *sip.Msg, inviteAddr *n
 
 	if invite.Payload == nil {
 		return fail(501,
-			errors.New("server offer not implemented yet"),
+			errors.New("server offers not implemented"),
 			inviteAddr,
 		)
 	}
@@ -413,6 +413,13 @@ outer:
 					}
 					s.sendReply(msg, reply, addr)
 				}
+				if msg.Payload == nil {
+					fail(
+						500,
+						"server offers not implemented",
+					)
+					continue outer
+				}
 				offer, ok := msg.Payload.(*sdp.SDP)
 				if !ok {
 					fail(400, "couldn't parse SDP")
@@ -421,7 +428,8 @@ outer:
 				offerAddr, err :=
 					net.ResolveIPAddr("ip", offer.Addr)
 				if err != nil {
-					log.Printf("ResolveIPAddr: %v", err)
+					fail(400, "couldnt parse IP address")
+					continue outer
 				}
 				remoteRTP.Store(&net.UDPAddr{
 					IP:   offerAddr.IP,
