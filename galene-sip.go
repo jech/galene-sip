@@ -97,14 +97,17 @@ func main() {
 	signal.Notify(terminate, syscall.SIGINT, syscall.SIGTERM)
 
 	registerCallID := util.GenerateCallID()
-	registerDone := make(chan struct{})
+	register4Done := make(chan struct{})
+	register6Done := make(chan struct{})
 
 	ctx, cancel := context.WithCancel(context.Background())
 
 	if !noRegister {
-		go registerLoop(ctx, s, registerCallID, registerDone)
+		go registerLoop(ctx, "udp4", s, registerCallID, register4Done)
+		go registerLoop(ctx, "udp6", s, registerCallID, register6Done)
 	} else {
-		close(registerDone)
+		close(register4Done)
+		close(register6Done)
 	}
 
 	go outOfDialogLoop(ctx, s)
@@ -113,7 +116,8 @@ func main() {
 
 	// leave time for BYE requests to go out
 	timer := time.NewTimer(450 * time.Millisecond)
-	<-registerDone
+	<-register4Done
+	<-register6Done
 	<-timer.C
 }
 

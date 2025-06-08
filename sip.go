@@ -532,7 +532,7 @@ func (e AuthChallengeError) Error() string {
 	return "unauthorized (with challenge)"
 }
 
-func (s *sipServer) register1(ctx context.Context, callId string, cseq *int, seconds int) (int, error) {
+func (s *sipServer) register1(ctx context.Context, network string, callId string, cseq *int, seconds int) (int, error) {
 	registrar, err := sip.ParseURI([]byte(s.registrar))
 	if err != nil {
 		return 0, err
@@ -542,8 +542,11 @@ func (s *sipServer) register1(ctx context.Context, callId string, cseq *int, sec
 		p = 5060
 	}
 	registrarAddr, err := net.ResolveUDPAddr(
-		"udp", net.JoinHostPort(registrar.Host, strconv.Itoa(int(p))),
+		network, net.JoinHostPort(registrar.Host, strconv.Itoa(int(p))),
 	)
+	if err != nil {
+		return 0, err
+	}
 
 	contact, err := s.contact(registrarAddr)
 	if err != nil {
@@ -640,8 +643,8 @@ func (s *sipServer) register1(ctx context.Context, callId string, cseq *int, sec
 	}
 }
 
-func (s *sipServer) register(ctx context.Context, callId string, cseq *int, seconds int) (int, error) {
-	secs, err := s.register1(ctx, callId, cseq, seconds)
+func (s *sipServer) register(ctx context.Context, network string, callId string, cseq *int, seconds int) (int, error) {
+	secs, err := s.register1(ctx, network, callId, cseq, seconds)
 	if err == nil {
 		return secs, err
 	}
@@ -668,21 +671,32 @@ func (s *sipServer) register(ctx context.Context, callId string, cseq *int, seco
 			return 0, fmt.Errorf("compute digest: %w", err)
 		}
 		s.authorization = creds.String()
-		return s.register1(ctx, callId, cseq, seconds)
+		return s.register1(ctx, network, callId, cseq, seconds)
 	}
 
 	return 0, err
 }
 
-func registerLoop(ctx context.Context, s *sipServer, callID string, registerDone chan<- struct{}) {
+func registerLoop(ctx context.Context, network string, s *sipServer, callID string, registerDone chan<- struct{}) {
 	var timeout time.Duration
 	cseq := 1
 	registered := false
 outer:
 	for {
-		secs, err := s.register(ctx, callID, &cseq, 3600)
+		secs, err := s.register(ctx, network, callID, &cseq, 3600)
 		if err != nil {
-			log.Println("Register:", err)
+			fine := false
+			if network == "udp6" {
+				// Perhaps we have no IPv6 addres. That's fine.
+				var aerr *net.AddrError
+				fine = fine || errors.As(err, &aerr)
+				// Perhaps the server doesn't.  That's fine too.
+				var derr *net.DNSError
+				fine = fine || errors.As(err, &derr)
+			}
+			if !fine || debug {
+				log.Printf("Register %v: %v", network, err)
+			}
 			timeout = time.Minute
 		} else {
 			timeout = max(
@@ -703,7 +717,8 @@ outer:
 	if registered {
 		// unregister even if register returned 0, since we might be
 		// behind NAT and didn't recognise our contact in the reply.
-		secs, err := s.register(context.Background(), callID, &cseq, 0)
+		secs, err := s.register(context.Background(),
+			network, callID, &cseq, 0)
 		if err != nil || secs != 0 {
 			log.Printf("Unregister: %v %v", secs, err)
 		}
