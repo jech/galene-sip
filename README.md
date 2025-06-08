@@ -9,13 +9,14 @@ following features:
   * handle SIP reinvites (put on hold);
   * recode audio from SIP to Galene;
   * decode, mix and reencode audio from Galene to SIP;
-  * silence detection.
+  * silence detection;
+  * enough NAT traversal to work with most registrars even when behind NAT.
   
-This is a work in progress, and the following SIP features are currently
-not implemented:
+This is, however, a work in progress, and the following SIP features need
+implementing:
 
-  * NAT support (keepalives, STUN, etc.);
-  * SIP over TCP and over TLS (only UDP is supported);
+  * more NAT traversal (keepalives, STUN, GRUU, RTCP multiplexing);
+  * SIP over TCP and SIP over TLS;
   * referrals (call transfer, RFC 3515);
   * session timers (RFC 4028);
   * client offers (a mandatory part of the specification, but apparently
