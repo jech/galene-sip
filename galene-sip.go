@@ -411,7 +411,9 @@ outer:
 						Phrase:  phrase,
 						Contact: contact,
 					}
-					s.sendReply(msg, reply, addr)
+					s.sendReplyReliably(ctx,
+						msg, reply, addr, false, reqCh,
+					)
 				}
 				if msg.Payload == nil {
 					fail(
@@ -440,10 +442,15 @@ outer:
 					Contact: contact,
 					Payload: answer,
 				}
-				s.sendReply(msg, inviteOk, addr)
+				// don't honour cancel, since we don't rollback
+				s.sendReplyReliably(ctx,
+					msg, inviteOk, addr, false, reqCh,
+				)
 			} else if strings.EqualFold(msg.Method, "ACK") ||
 				strings.EqualFold(msg.Method, "CANCEL") {
-				// nothing
+				if debug {
+					log.Print("Unexpected %v", msg.Method)
+				}
 			} else {
 				resp := &sip.Msg{
 					Status:  500,
