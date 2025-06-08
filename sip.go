@@ -403,6 +403,18 @@ func (s *sipServer) readLoop() error {
 			log.Println("ParseMsg:", err)
 			continue
 		}
+		if !msg.IsResponse() && msg.Request == nil {
+			if debug {
+				log.Println("Got incomplete request")
+			}
+			continue
+		}
+		if msg.From == nil || msg.To == nil {
+			if debug {
+				log.Println("Got incomplete message")
+			}
+			continue
+		}
 		remoteTag, localTag := getTags(msg)
 		if msg.IsResponse() {
 			remoteTag, localTag = localTag, remoteTag

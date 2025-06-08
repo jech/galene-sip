@@ -161,6 +161,13 @@ func outOfDialogLoop(ctx context.Context, s *sipServer) {
 }
 
 func gotInvite(ctx context.Context, s *sipServer, invite *sip.Msg, inviteAddr *net.UDPAddr) error {
+	if invite.Contact == nil {
+		return errors.New("got invite with no Contact")
+	}
+	if invite.Via == nil {
+		return errors.New("got invite with no Via")
+	}
+
 	fromTag, toTag := getTags(invite)
 	if toTag != "" {
 		return errors.New("got invite with to tag")
@@ -330,9 +337,6 @@ func gotInvite(ctx context.Context, s *sipServer, invite *sip.Msg, inviteAddr *n
 
 	bye := func() error {
 		branch := invite.Via.Param.Get("branch")
-		if branch == nil {
-			return errors.New("couldn't find branch")
-		}
 		via := &sip.Via{
 			Host: invite.Via.Host,
 			Port: invite.Via.Port,
