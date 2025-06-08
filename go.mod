@@ -7,7 +7,7 @@ toolchain go1.24.2
 require (
 	github.com/gorilla/websocket v1.5.0
 	github.com/icholy/digest v1.1.0
-	github.com/jart/gosip v0.0.0-20220818224804-29801cedf805
+	github.com/jart/gosip v0.0.0-20250608122604-60fd410bff6b
 	github.com/jech/gclient v0.0.0-20250605161307-af20b3017c26
 	github.com/pion/rtcp v1.2.15
 	github.com/pion/rtp v1.8.18

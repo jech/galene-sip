@@ -8,8 +8,8 @@ github.com/gorilla/websocket v1.5.0 h1:PPwGk2jz7EePpoHN/+ClbZu8SPxiqlu12wZP/3sWm
 github.com/gorilla/websocket v1.5.0/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/icholy/digest v1.1.0 h1:HfGg9Irj7i+IX1o1QAmPfIBNu/Q5A5Tu3n/MED9k9H4=
 github.com/icholy/digest v1.1.0/go.mod h1:QNrsSGQ5v7v9cReDI0+eyjsXGUoRSUZQHeQ5C4XLa0Y=
-github.com/jart/gosip v0.0.0-20220818224804-29801cedf805 h1:mAaAQei2Kf679W1Zc65tkAEC8z4C6OZYWzJxVEB8mc8=
-github.com/jart/gosip v0.0.0-20220818224804-29801cedf805/go.mod h1:pLqHw0l24s7B/i+bBauWzg3oF8z+78wfh/8MnRce81Q=
+github.com/jart/gosip v0.0.0-20250608122604-60fd410bff6b h1:i7F0voRnsmrjBetQ4IJwxc2Wg0USMfYdbDDnnb1Waoo=
+github.com/jart/gosip v0.0.0-20250608122604-60fd410bff6b/go.mod h1:pLqHw0l24s7B/i+bBauWzg3oF8z+78wfh/8MnRce81Q=
 github.com/jech/gclient v0.0.0-20250605161307-af20b3017c26 h1:/HljQmzG7bls/OtibrTdf3qNQUI0xRUJpHlVrBWVpGA=
 github.com/jech/gclient v0.0.0-20250605161307-af20b3017c26/go.mod h1:ipCBLyAD1CXM389RRoj6jwau07rN1pA8LJ2zEEGMJxM=
 github.com/pion/datachannel v1.5.10 h1:ly0Q26K1i6ZkGf42W7D4hQYR90pZwzFOjTq5AuCKk4o=
