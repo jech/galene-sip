@@ -260,6 +260,11 @@ func gotInvite(ctx context.Context, s *sipServer, invite *sip.Msg, inviteAddr *n
 		return fail(488, err, inviteAddr)
 	}
 
+	if offer.Audio.Proto != "RTP/AVP" {
+		err := errors.New("unknown transport protocol")
+		return fail(488, err, inviteAddr)
+	}
+
 	var pcmu, pcma sdp.Codec
 	for _, codec := range offer.Audio.Codecs {
 		if strings.EqualFold(codec.Name, "PCMU") &&
