@@ -151,8 +151,17 @@ outer:
 					To:     to,
 				}
 				s.sendReply(msg, optionsOk, addr)
+			} else if strings.EqualFold(msg.Method, "REGISTER") {
+				reply := &sip.Msg{
+					Status: 405,
+					Allow:  "INVITE, ACK, OPTIONS, BYE, CANCEL",
+				}
+				s.sendReply(msg, reply, addr)
 			} else {
-				log.Println("Unexpected message", msg.Method)
+				reply := &sip.Msg{
+					Status: 400,
+				}
+				s.sendReply(msg, reply, addr)
 			}
 		case m := <-s.outOfDialog.replyCh:
 			log.Println("Unexpected reply", m.msg.CSeqMethod)
