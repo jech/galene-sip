@@ -116,8 +116,7 @@ func (s *sipServer) sendReply(req, rep *sip.Msg, to *net.UDPAddr) error {
 	return s.send(rep, to)
 }
 
-// transcationMatch returns true if reply is either a reply to msg or an
-// ACK, CANCEL, BYE or similar that acknowledges the reply to msg.
+// transactionMatch returns true if reply is a reply to msg
 func transactionMatch(reply, msg *sip.Msg) bool {
 	if reply.Via == nil || msg.Via == nil {
 		return false
@@ -179,7 +178,7 @@ outer:
 	return nil, nil, ErrSIPTimeout
 }
 
-func (s *sipServer) sendReplyReliably(ctx context.Context, invite, msg *sip.Msg, to *net.UDPAddr, honourCancel bool, ch <-chan *sipMsg) (*sip.Msg, *net.UDPAddr, error) {
+func (s *sipServer) sendReplyReliably(ctx context.Context, invite, msg *sip.Msg, to *net.UDPAddr, ch <-chan *sipMsg) (*sip.Msg, *net.UDPAddr, error) {
 	if !strings.EqualFold(invite.Method, "INVITE") {
 		return nil, nil, errors.New("method should be INVITE")
 	}
@@ -208,30 +207,7 @@ outer:
 				}
 				msg2 := m2.msg
 				addr2 := m2.addr
-				if strings.EqualFold(
-					msg2.Method, "ACK",
-				) {
-					return msg2, addr2, nil
-				} else if honourCancel && strings.EqualFold(
-					msg2.Method, "CANCEL",
-				) {
-					cancelOk := &sip.Msg{
-						Status: 200,
-					}
-					s.sendReply(msg2, cancelOk, to)
-					terminatedReply := &sip.Msg{
-						Status: 487,
-						To:     msg.To,
-					}
-					_, _, err := s.sendReplyReliably(
-						ctx, invite, terminatedReply,
-						to, false, ch,
-					)
-					if err != nil {
-						return nil, nil, err
-					}
-					return nil, nil, ErrSIPDialogTerminated
-				} else {
+				if msg2.CSeq != invite.CSeq {
 					// the peer sent us a request, but
 					// we're not ready to start a new
 					// transaction right now.  Drop
@@ -243,6 +219,27 @@ outer:
 							msg2.Method,
 						)
 					}
+					continue
+				}
+				if strings.EqualFold(
+					msg2.Method, "ACK",
+				) {
+					return msg2, addr2, nil
+				} else if strings.EqualFold(
+					msg2.Method, "CANCEL",
+				) {
+					continue
+				} else {
+					if debug {
+						log.Printf(
+							"Unexpected request %v",
+							msg2.Method,
+						)
+					}
+					return nil, nil, errors.New(
+						"unexpected request " +
+							msg.Method,
+					)
 				}
 			}
 		}
@@ -385,6 +382,20 @@ func tweakVia(msg *sip.Msg, from *net.UDPAddr) (*net.UDPAddr, error) {
 	}, nil
 }
 
+func requestIsOld(req *sip.Msg, cseq int) bool {
+	if req.CSeq < cseq {
+		return true
+	}
+
+	if !strings.EqualFold(req.Method, "ACK") &&
+		!strings.EqualFold(req.Method, "CANCEL") {
+		if req.CSeq == cseq {
+			return true
+		}
+	}
+	return false
+}
+
 func (s *sipServer) readLoop() error {
 	buf := make([]byte, 65536)
 	for {
@@ -472,8 +483,10 @@ func (s *sipServer) readLoop() error {
 			if msg.IsResponse() {
 				ch = d.replyCh
 			} else {
-				if d.cseq >= 0 && d.cseq >= msg.CSeq {
-					continue
+				if d.cseq >= 0 {
+					if requestIsOld(msg, d.cseq) {
+						continue
+					}
 				}
 				d.cseq = msg.CSeq
 			}

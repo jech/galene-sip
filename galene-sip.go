@@ -221,7 +221,7 @@ func gotInvite(ctx context.Context, s *sipServer, invite *sip.Msg, inviteAddr *n
 			To:      to,
 			Contact: contact,
 		}
-		s.sendReplyReliably(ctx, invite, reply, addr, false, replyCh)
+		s.sendReplyReliably(ctx, invite, reply, addr, replyCh)
 		return err
 	}
 
@@ -235,7 +235,7 @@ func gotInvite(ctx context.Context, s *sipServer, invite *sip.Msg, inviteAddr *n
 			Unsupported: unsupported,
 		}
 		s.sendReplyReliably(ctx,
-			invite, reply, inviteAddr, false, reqCh,
+			invite, reply, inviteAddr, reqCh,
 		)
 		return err
 	}
@@ -345,7 +345,7 @@ func gotInvite(ctx context.Context, s *sipServer, invite *sip.Msg, inviteAddr *n
 	}
 
 	_, _, err = s.sendReplyReliably(ctx,
-		invite, okReply, inviteAddr, true, reqCh,
+		invite, okReply, inviteAddr, reqCh,
 	)
 	if err != nil {
 		return err
@@ -432,7 +432,7 @@ outer:
 						Contact: contact,
 					}
 					s.sendReplyReliably(ctx,
-						msg, reply, addr, false, reqCh,
+						msg, reply, addr, reqCh,
 					)
 				}
 				if msg.Payload == nil {
@@ -464,7 +464,7 @@ outer:
 				}
 				// don't honour cancel, since we don't rollback
 				s.sendReplyReliably(ctx,
-					msg, inviteOk, addr, false, reqCh,
+					msg, inviteOk, addr, reqCh,
 				)
 			} else if strings.EqualFold(msg.Method, "ACK") ||
 				strings.EqualFold(msg.Method, "CANCEL") {
