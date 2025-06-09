@@ -739,19 +739,12 @@ outer:
 }
 
 func socketPair() (*net.UDPConn, *net.UDPConn, error) {
-	for i := 0; i < 100; i++ {
-		rtp, err := net.ListenUDP("udp", &net.UDPAddr{})
+	for i := 0x8000; i < 0xfffe; i++ {
+		rtp, err := net.ListenUDP("udp", &net.UDPAddr{Port: i})
 		if err != nil {
 			continue
 		}
-		rtpaddr := rtp.LocalAddr().(*net.UDPAddr)
-		if rtpaddr.Port%2 != 0 {
-			rtp.Close()
-			continue
-		}
-		rtcp, err := net.ListenUDP("udp", &net.UDPAddr{
-			Port: rtpaddr.Port + 1,
-		})
+		rtcp, err := net.ListenUDP("udp", &net.UDPAddr{Port: i+1})
 		if err != nil {
 			rtp.Close()
 			continue
