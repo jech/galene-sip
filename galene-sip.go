@@ -703,11 +703,9 @@ func rtpLoopGalene(rtpSock *net.UDPConn, rtcpSock *net.UDPConn, ssrc uint32, cod
 		case now := <-ticker.C:
 		again:
 			t0, pcm := audio.Get(spp)
-			if len(pcm) == 0 {
-				continue
-			}
 
-			if silence < 30*48000 && isSilence(pcm) {
+			// Send packets occasionally even if silent
+			if silence < 5*48000 && isSilence(pcm) {
 				silence += len(pcm)
 				continue
 			}
@@ -747,13 +745,10 @@ func rtpLoopGalene(rtpSock *net.UDPConn, rtcpSock *net.UDPConn, ssrc uint32, cod
 				marker = false
 			}
 
-			t1 := t0.Add(time.Duration(len(pcm)) *
-				(time.Second / 48000))
-			delta := now.Sub(t1)
-			if delta > time.Second ||
-				delta < 20*time.Millisecond {
-				audio.Shift(now)
-			} else if delta > 50*time.Millisecond {
+			delta := now.Sub(t0)
+			if delta > time.Second || delta < mixingDelay {
+				audio.Shift(now.Add(-mixingDelay))
+			} else if delta > mixingDelay+20*time.Millisecond {
 				now = time.Now()
 				goto again
 			}

@@ -56,6 +56,11 @@ func (audio *audioBuffer) Put(ts time.Time, pcm []int16) {
 	sadd(audio.pcm[delta:], pcm)
 }
 
+const (
+	// must be more than 20ms (one packet)
+	mixingDelay = 40 * time.Millisecond
+)
+
 func (audio *audioBuffer) Get(samples int) (time.Time, []int16) {
 	pcm := make([]int16, samples)
 
@@ -63,7 +68,7 @@ func (audio *audioBuffer) Get(samples int) (time.Time, []int16) {
 	defer audio.mu.Unlock()
 
 	if audio.ts.Equal(time.Time{}) {
-		return time.Time{}, nil
+		audio.ts = time.Now().Add(-mixingDelay - 5*time.Millisecond)
 	}
 
 	copy(pcm, audio.pcm)
