@@ -531,9 +531,6 @@ func rptLoopSIP(rtpSock *net.UDPConn, rtcpSock *net.UDPConn, upTrack *webrtc.Tra
 		if err != nil {
 			return err
 		}
-		if n == 0 || isSilence(lbuf[:n]) {
-			return nil
-		}
 		m, err := encoder.Encode(lbuf[:n], buf)
 		if err != nil {
 			return err
