@@ -34,7 +34,12 @@ apt install libopus-dev
 
 Then do:
 ```
-go build
+go build -ldflags='-s -w'
+```
+If the Go compiler complains with an obscure error message about libopus,
+then try  enabling Cgo and specifying the path to your C compiler:
+```
+CGO_ENABLED=1 CC=/path/to/your/c/compiler go build -ldflags='-s -w'
 ```
 
 ## Usage
