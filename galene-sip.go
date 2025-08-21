@@ -469,7 +469,7 @@ outer:
 			} else if strings.EqualFold(msg.Method, "ACK") ||
 				strings.EqualFold(msg.Method, "CANCEL") {
 				if debug {
-					log.Print("Unexpected %v", msg.Method)
+					log.Printf("Unexpected %v", msg.Method)
 				}
 			} else {
 				resp := &sip.Msg{
