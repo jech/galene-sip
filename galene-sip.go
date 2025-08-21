@@ -981,7 +981,7 @@ func galeneJoin(ctx context.Context, url, username, password string) (*gclient.C
 			switch e := e.(type) {
 			case gclient.JoinedEvent:
 				switch e.Kind {
-				case "failed":
+				case "fail":
 					client.Close()
 					return nil, nil, nil, fmt.Errorf(
 						"couldn't join: %v", e.Value,
