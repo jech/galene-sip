@@ -7,12 +7,11 @@ toolchain go1.24.2
 require (
 	github.com/gorilla/websocket v1.5.0
 	github.com/icholy/digest v1.1.0
-	github.com/jart/gosip v0.0.0-20250608122604-60fd410bff6b
+	github.com/jart/gosip v0.0.0-20260523134553-69ca81a85519
 	github.com/jech/gclient v0.0.0-20250821122736-1f6dd499c0e4
 	github.com/pion/rtcp v1.2.15
 	github.com/pion/rtp v1.8.18
 	github.com/pion/webrtc/v4 v4.1.1
-	github.com/zaf/g711 v1.4.0
 )
 
 require (

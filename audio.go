@@ -6,25 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zaf/g711"
+	"github.com/jart/gosip/dsp"
 )
-
-// sadd performs saturating addition of s into d
-func sadd(d, s []int16) {
-	for i, v := range s {
-		if i >= len(d) {
-			return
-		}
-		w := int32(d[i]) + int32(v)
-		if w >= 0x7FFF {
-			w = 0x7FFF
-		}
-		if w < -0x8000 {
-			w = -0x8000
-		}
-		d[i] = int16(w)
-	}
-}
 
 type audioBuffer struct {
 	mu  sync.Mutex
@@ -46,14 +29,14 @@ func (audio *audioBuffer) Put(ts time.Time, pcm []int16) {
 		if -delta >= len(pcm) {
 			return
 		}
-		sadd(audio.pcm, pcm[-delta:])
+		dsp.Sadd(audio.pcm, pcm[-delta:])
 		return
 	}
 
 	if delta > len(audio.pcm) {
 		return
 	}
-	sadd(audio.pcm[delta:], pcm)
+	dsp.Sadd(audio.pcm[delta:], pcm)
 }
 
 const (
@@ -107,12 +90,12 @@ func (audio *audioBuffer) Shift(ts time.Time) {
 func decodeAudio(codec string, dst []int16, src []byte) (int, error) {
 	if strings.EqualFold(codec, "PCMA") {
 		for i, v := range src {
-			dst[i] = g711.DecodeAlawFrame(v)
+			dst[i] = dsp.AlawToLinear(v)
 		}
 		return len(src), nil
 	} else if strings.EqualFold(codec, "PCMU") {
 		for i, v := range src {
-			dst[i] = g711.DecodeUlawFrame(v)
+			dst[i] = dsp.UlawToLinear(v)
 		}
 		return len(src), nil
 	}
@@ -127,9 +110,7 @@ func encodeAudio(codec string, down int, dst []byte, src []int16) (int, error) {
 			for j := 0; j < down; j++ {
 				v += int32(src[i*down+j])
 			}
-			dst[i] = g711.EncodeAlawFrame(
-				int16(v / int32(down)),
-			)
+			dst[i] = dsp.LinearToAlaw(int16(v / int32(down)))
 		}
 		return count, nil
 	} else if strings.EqualFold(codec, "PCMU") {
@@ -138,9 +119,7 @@ func encodeAudio(codec string, down int, dst []byte, src []int16) (int, error) {
 			for j := 0; j < down; j++ {
 				v += int32(src[i*down+j])
 			}
-			dst[i] = g711.EncodeUlawFrame(
-				int16(v / int32(down)),
-			)
+			dst[i] = dsp.LinearToUlaw(int16(v / int32(down)))
 		}
 		return count, nil
 	}
