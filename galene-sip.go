@@ -509,10 +509,10 @@ func checkRequire(require string) string {
 	for _, r := range rs {
 		rr := strings.Trim(r, " \t\r\n")
 		if rr != "" {
-			return ""
+			return require
 		}
 	}
-	return require
+	return ""
 }
 
 func rptLoopSIP(rtpSock *net.UDPConn, rtcpSock *net.UDPConn, upTrack *webrtc.TrackLocalStaticRTP, ssrc uint32, codec sdp.Codec, audioBuf *audioBuffer, remoteRTP *atomic.Value, done <-chan struct{}) {
